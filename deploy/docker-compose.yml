@@ -1,0 +1,27 @@
+services:
+  namesrv:
+    image: apache/rocketmq:4.9.8
+    platform: linux/amd64
+    command: sh mqnamesrv
+    ports: ["9876:9876"]
+    environment:
+      JAVA_OPT_EXT: "-Xms256m -Xmx256m -Xmn128m"
+  broker:
+    image: apache/rocketmq:4.9.8
+    platform: linux/amd64
+    command: sh mqbroker -c /home/rocketmq/broker.conf
+    depends_on: [namesrv]
+    ports: ["10909:10909", "10911:10911", "10912:10912"]
+    environment:
+      JAVA_OPT_EXT: "-Xms512m -Xmx512m -Xmn256m"
+    volumes:
+      - ./broker.conf:/home/rocketmq/broker.conf:ro
+      - broker-store:/home/rocketmq/store
+  redis:
+    image: redis:7.2.5
+    command: redis-server --appendonly yes --appendfsync everysec --maxmemory-policy noeviction
+    ports: ["6379:6379"]
+    volumes: ["redis-data:/data"]
+volumes:
+  broker-store:
+  redis-data:
